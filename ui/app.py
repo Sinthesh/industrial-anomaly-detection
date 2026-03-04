@@ -1,0 +1,34 @@
+import streamlit as st
+import sys
+import os
+
+sys.path.append("/content/drive/MyDrive/industrial_defect_detection")
+
+from mcp_server.controller import process_inspection
+
+st.title("Industrial Defect Detection System")
+
+st.write("Upload a product image and run anomaly inspection.")
+
+uploaded_file = st.file_uploader("Upload Image")
+
+product = st.selectbox(
+    "Select Product Type",
+    ["bottle", "hazelnut", "metalnut", "pill"]
+)
+
+if uploaded_file is not None:
+
+    temp_path = "temp_image.png"
+
+    with open(temp_path, "wb") as f:
+        f.write(uploaded_file.getbuffer())
+
+    st.image(temp_path, caption="Uploaded Image", use_column_width=True)
+
+    if st.button("Run Inspection"):
+
+        result = process_inspection(temp_path, product)
+
+        st.write("### Inspection Result")
+        st.json(result)

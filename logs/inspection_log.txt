@@ -1,0 +1,2 @@
+{"product": "hazelnut", "image": "/content/drive/MyDrive/colab_datasets/mvtec-ad/hazelnut/test/crack/008.png", "score": 0.6939395666122437, "runtime_seconds": 6.368}
+{"product": "hazelnut", "image": "/content/drive/MyDrive/colab_datasets/mvtec-ad/hazelnut/test/crack/005.png", "score": 0.7717086672782898, "runtime_seconds": 0.93}
