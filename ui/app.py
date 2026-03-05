@@ -38,12 +38,21 @@ if uploaded_file is not None:
         result = process_inspection(temp_path, product)
 
         score = result.get("score", 0)
-        heatmap = np.array(result.get("heatmap", []))
+        heatmap_data = result.get("heatmap", None)
         runtime = result.get("runtime_seconds", 0)
 
-        # Fix heatmap shape
-        if heatmap.size > 0:
-            heatmap = heatmap.reshape(224, 224)
+        # Convert heatmap safely
+        heatmap = None
+        if heatmap_data is not None:
+            heatmap = np.array(heatmap_data)
+
+            # If flattened, reshape
+            if heatmap.ndim == 1:
+                size = int(np.sqrt(len(heatmap)))
+                heatmap = heatmap.reshape(size, size)
+
+            # If nested weirdly, squeeze it
+            heatmap = np.squeeze(heatmap)
 
         st.write("## Inspection Result")
 
@@ -52,22 +61,27 @@ if uploaded_file is not None:
         with col1:
             st.write("### Anomaly Heatmap")
 
-            fig, ax = plt.subplots()
-            ax.imshow(heatmap, cmap="jet")
-            ax.axis("off")
-
-            st.pyplot(fig)
+            if heatmap is not None and heatmap.ndim == 2:
+                fig, ax = plt.subplots()
+                ax.imshow(heatmap, cmap="jet")
+                ax.axis("off")
+                st.pyplot(fig)
+            else:
+                st.warning("Heatmap could not be displayed.")
 
         with col2:
             st.write("### Overlay Detection")
 
-            fig2, ax2 = plt.subplots()
+            if heatmap is not None and heatmap.ndim == 2:
+                fig2, ax2 = plt.subplots()
 
-            ax2.imshow(image.resize((224,224)))
-            ax2.imshow(heatmap, cmap="jet", alpha=0.5)
-            ax2.axis("off")
+                ax2.imshow(image.resize((224,224)))
+                ax2.imshow(heatmap, cmap="jet", alpha=0.5)
+                ax2.axis("off")
 
-            st.pyplot(fig2)
+                st.pyplot(fig2)
+            else:
+                st.warning("Overlay not available.")
 
         st.write("### Metrics")
 
