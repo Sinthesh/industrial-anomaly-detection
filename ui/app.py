@@ -11,8 +11,6 @@ from mcp_server.controller import process_inspection
 
 st.title("Industrial Defect Detection System")
 
-st.write("Upload a product image and run anomaly inspection.")
-
 uploaded_file = st.file_uploader("Upload Image")
 
 product = st.selectbox(
@@ -78,5 +76,4 @@ if uploaded_file is not None:
 
             st.image(overlay)
 
-        st.write("### Inspection Data")
         st.json(result)
