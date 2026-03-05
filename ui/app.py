@@ -1,8 +1,9 @@
 import streamlit as st
-import sys
 import os
+import sys
 
-sys.path.append("/content/drive/MyDrive/industrial_defect_detection")
+# Fix project imports
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from mcp_server.controller import process_inspection
 
