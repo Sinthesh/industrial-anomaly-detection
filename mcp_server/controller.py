@@ -38,6 +38,7 @@ def process_inspection(image_path, product):
         "product": product,
         "image": image_path,
         "score": float(score),
+        "heatmap": heatmap.tolist(),   # Convert numpy → list for JSON
         "runtime_seconds": runtime
     }
 
