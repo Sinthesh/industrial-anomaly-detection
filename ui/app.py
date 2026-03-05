@@ -2,31 +2,26 @@ import streamlit as st
 import sys
 import os
 import numpy as np
-import matplotlib.pyplot as plt
+import cv2
 from PIL import Image
 
-# Fix project imports
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# Allow project imports
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from mcp_server.controller import process_inspection
 
 
-# ------------------------
-# Page Config
-# ------------------------
-
-st.set_page_config(
-    page_title="Industrial Defect Detection",
-    layout="wide"
-)
+# -----------------------------
+# Page Title
+# -----------------------------
 
 st.title("Industrial Defect Detection System")
-
 st.write("Upload a product image and run anomaly inspection.")
 
-# ------------------------
-# Upload Section
-# ------------------------
+
+# -----------------------------
+# Upload Image
+# -----------------------------
 
 uploaded_file = st.file_uploader("Upload Image")
 
@@ -35,9 +30,10 @@ product = st.selectbox(
     ["bottle", "hazelnut", "metalnut", "pill"]
 )
 
-# ------------------------
-# Run Inspection
-# ------------------------
+
+# -----------------------------
+# When Image Uploaded
+# -----------------------------
 
 if uploaded_file is not None:
 
@@ -48,59 +44,93 @@ if uploaded_file is not None:
 
     image = Image.open(temp_path)
 
+    st.image(image, caption="Uploaded Image", width=350)
+
+
+    # -----------------------------
+    # Run Inspection Button
+    # -----------------------------
+
     if st.button("Run Inspection"):
 
         result = process_inspection(temp_path, product)
 
         score = result["score"]
+        heatmap = np.array(result["heatmap"], dtype=float)
 
-        heatmap = np.array(result.get("heatmap"), dtype=float)
+        st.write("## Inspection Result")
 
-        st.divider()
-
-        st.subheader("Inspection Result")
-
-        # ------------------------
-        # Status Indicator
-        # ------------------------
+        # -----------------------------
+        # Defect Status
+        # -----------------------------
 
         if score > 0.5:
-            st.error(f"DEFECT DETECTED 🔴  |  Score: {score:.3f}")
+            st.error(f"DEFECT DETECTED 🔴 | Score: {round(score,3)}")
         else:
-            st.success(f"NORMAL PRODUCT 🟢  |  Score: {score:.3f}")
+            st.success(f"NORMAL PRODUCT 🟢 | Score: {round(score,3)}")
 
-        # ------------------------
-        # Visualization Section
-        # ------------------------
 
-        original = image.resize((224,224))
+        # -----------------------------
+        # Visualization Layout
+        # -----------------------------
 
         col1, col2, col3 = st.columns(3)
 
+
+        # -----------------------------
         # Original Image
+        # -----------------------------
+
         with col1:
-            st.markdown("### Original")
-            st.image(original)
+            st.subheader("Original")
+            st.image(image, width=250)
 
+
+        # -----------------------------
         # Heatmap
+        # -----------------------------
+
         with col2:
-            st.markdown("### Heatmap")
+            st.subheader("Heatmap")
 
-            fig, ax = plt.subplots()
-            ax.imshow(heatmap.astype(float), cmap="jet")
-            ax.axis("off")
-            st.pyplot(fig)
+            st.image(
+                heatmap,
+                caption="Anomaly Heatmap",
+                clamp=True
+            )
 
-        # Overlay
+
+        # -----------------------------
+        # Overlay Detection
+        # -----------------------------
+
         with col3:
-            st.markdown("### Overlay Detection")
 
-            fig, ax = plt.subplots()
-            ax.imshow(original)
-            ax.imshow(heatmap, cmap="jet", alpha=0.5)
-            ax.axis("off")
+            st.subheader("Overlay")
 
-            st.pyplot(fig)
+            image_np = np.array(image.resize((224,224)))
 
-        # Runtime
-        st.write(f"Runtime: **{result['runtime_seconds']} seconds**")
+            heatmap_uint8 = (heatmap * 255).astype(np.uint8)
+
+            heatmap_color = cv2.applyColorMap(
+                heatmap_uint8,
+                cv2.COLORMAP_JET
+            )
+
+            overlay = cv2.addWeighted(
+                image_np,
+                0.6,
+                heatmap_color,
+                0.4,
+                0
+            )
+
+            st.image(overlay, caption="Overlay Detection")
+
+
+        # -----------------------------
+        # Raw Result JSON
+        # -----------------------------
+
+        st.write("### Inspection Data")
+        st.json(result)
