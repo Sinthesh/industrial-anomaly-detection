@@ -20,7 +20,8 @@ def process_inspection(image_path, product):
 
     vision_result = detect_anomaly(image_path, product)
 
-    runtime = round(time.time() - start_time, 3)
+    end_time = time.time()
+    runtime = round(end_time - start_time, 3)
 
     result = {
         "product": product,
