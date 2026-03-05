@@ -31,7 +31,11 @@ if uploaded_file is not None:
 
     if st.button("Run Inspection"):
 
-        result = process_inspection(temp_path, product)
+        try:
+            result = process_inspection(temp_path, product)
+        except Exception as e:
+            st.error(f"Inspection failed: {e}")
+            raise
 
         score = result["score"]
         heatmap = np.array(result["heatmap"], dtype=float)
