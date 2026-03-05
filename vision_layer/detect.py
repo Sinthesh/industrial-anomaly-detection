@@ -158,4 +158,4 @@ def detect_anomaly(image_path, product):
     print("Product:", product)
     print("Anomaly Score:", round(score, 3))
 
-    return score, heatmap, original_img
+    return score, heatmap
