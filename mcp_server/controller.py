@@ -6,11 +6,15 @@ from vision_layer.detect import detect_anomaly
 
 
 # ------------------------
-# Log File
+# Project Paths
 # ------------------------
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-LOG_PATH = os.path.join(BASE_DIR, "logs", "inspection_log.txt")
+LOG_DIR = os.path.join(BASE_DIR, "logs")
+LOG_PATH = os.path.join(LOG_DIR, "inspection_log.txt")
+
+# Ensure log folder exists
+os.makedirs(LOG_DIR, exist_ok=True)
 
 
 # ------------------------
@@ -34,7 +38,6 @@ def process_inspection(image_path, product):
         "product": product,
         "image": image_path,
         "score": float(score),
-        "heatmap": heatmap.tolist(),   # IMPORTANT
         "runtime_seconds": runtime
     }
 
@@ -50,8 +53,6 @@ def process_inspection(image_path, product):
 # ------------------------
 
 def log_result(result):
-
-    os.makedirs(os.path.dirname(LOG_PATH), exist_ok=True)
 
     with open(LOG_PATH, "a") as f:
         f.write(json.dumps(result) + "\n")
