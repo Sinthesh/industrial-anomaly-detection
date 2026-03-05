@@ -5,21 +5,12 @@ import os
 from vision_layer.detect import detect_anomaly
 
 
-# ------------------------
-# Project Paths
-# ------------------------
-
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 LOG_DIR = os.path.join(BASE_DIR, "logs")
 LOG_PATH = os.path.join(LOG_DIR, "inspection_log.txt")
 
-# Ensure log folder exists
 os.makedirs(LOG_DIR, exist_ok=True)
 
-
-# ------------------------
-# MCP Controller Function
-# ------------------------
 
 def process_inspection(image_path, product):
 
@@ -28,7 +19,6 @@ def process_inspection(image_path, product):
     print("Starting inspection...")
     print("Product:", product)
 
-    # Run Vision Model
     score, heatmap = detect_anomaly(image_path, product)
 
     end_time = time.time()
@@ -39,7 +29,7 @@ def process_inspection(image_path, product):
         "image": image_path,
         "score": float(score),
         "runtime_seconds": runtime,
-        "heatmap": heatmap.tolist()   # IMPORTANT FIX
+        "heatmap": heatmap.tolist()
     }
 
     log_result(result)
@@ -48,10 +38,6 @@ def process_inspection(image_path, product):
 
     return result
 
-
-# ------------------------
-# Logging Function
-# ------------------------
 
 def log_result(result):
 
