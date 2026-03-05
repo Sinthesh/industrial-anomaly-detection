@@ -9,9 +9,8 @@ from vision_layer.detect import detect_anomaly
 # Log File
 # ------------------------
 
-LOG_PATH = "logs/inspection_log.txt"
-
-os.makedirs("logs", exist_ok=True)
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+LOG_PATH = os.path.join(BASE_DIR, "logs", "inspection_log.txt")
 
 
 # ------------------------
@@ -26,7 +25,7 @@ def process_inspection(image_path, product):
     print("Product:", product)
 
     # Run Vision Model
-    score, heatmap = detect_anomaly(image_path, product)
+    score, heatmap, original_img = detect_anomaly(image_path, product)
 
     end_time = time.time()
     runtime = round(end_time - start_time, 3)
@@ -35,12 +34,10 @@ def process_inspection(image_path, product):
         "product": product,
         "image": image_path,
         "score": float(score),
-        "runtime_seconds": runtime,
-        "heatmap": heatmap.tolist()   # ⭐ IMPORTANT FIX
+        "heatmap": heatmap.tolist(),   # IMPORTANT
+        "runtime_seconds": runtime
     }
-    print("DEBUG RESULT:", result.keys())
-    print("DEBUG HEATMAP TYPE:", type(heatmap))
-    print("DEBUG HEATMAP SHAPE:", heatmap.shape if heatmap is not None else None)
+
     log_result(result)
 
     print("Inspection completed in", runtime, "seconds")
@@ -53,6 +50,8 @@ def process_inspection(image_path, product):
 # ------------------------
 
 def log_result(result):
+
+    os.makedirs(os.path.dirname(LOG_PATH), exist_ok=True)
 
     with open(LOG_PATH, "a") as f:
         f.write(json.dumps(result) + "\n")
