@@ -48,15 +48,13 @@ if uploaded_file is not None:
 
     image = Image.open(temp_path)
 
-    st.image(image, caption="Uploaded Image", use_column_width=True)
-
     if st.button("Run Inspection"):
 
         result = process_inspection(temp_path, product)
 
         score = result["score"]
 
-        heatmap = np.array(result.get("heatmap"))
+        heatmap = np.array(result.get("heatmap"), dtype=float)
 
         st.divider()
 
@@ -89,9 +87,8 @@ if uploaded_file is not None:
             st.markdown("### Heatmap")
 
             fig, ax = plt.subplots()
-            ax.imshow(heatmap, cmap="jet")
+            ax.imshow(heatmap.astype(float), cmap="jet")
             ax.axis("off")
-
             st.pyplot(fig)
 
         # Overlay
