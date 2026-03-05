@@ -37,9 +37,9 @@ if uploaded_file is not None:
 
         result = process_inspection(temp_path, product)
 
-        score = result["score"]
-        heatmap = np.array(result["heatmap"])
-        runtime = result["runtime_seconds"]
+        score = result.get("score", 0)
+        heatmap = np.array(result.get("heatmap", []))
+        runtime = result.get("runtime_seconds", 0)
 
         st.write("## Inspection Result")
 
