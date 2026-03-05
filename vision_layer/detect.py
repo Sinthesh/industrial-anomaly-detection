@@ -140,7 +140,7 @@ def detect_anomaly(image_path, product):
         padding=5
     ).squeeze()
 
-    heatmap = smoothed_map.numpy()
+    heatmap = smoothed_map.cpu().numpy()
 
     # ------------------------
     # Normalize Heatmap
