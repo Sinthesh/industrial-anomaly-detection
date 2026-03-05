@@ -19,7 +19,8 @@ def process_inspection(image_path, product):
     print("Starting inspection...")
     print("Product:", product)
 
-    score, heatmap = detect_anomaly(image_path, product)
+    # Run Vision Model
+    score, heatmap, _ = detect_anomaly(image_path, product)
 
     end_time = time.time()
     runtime = round(end_time - start_time, 3)
