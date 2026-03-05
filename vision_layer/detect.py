@@ -57,8 +57,8 @@ def load_padim_model(product):
 
     checkpoint = torch.load(model_path, map_location=device)
 
-    mean = checkpoint["mean"]
-    inv_cov = checkpoint["inv_cov"]
+    mean = checkpoint["mean"].cpu()
+    inv_cov = checkpoint["inv_cov"].cpu()
     selected_indices = checkpoint["selected_indices"]
 
     return mean, inv_cov, selected_indices
