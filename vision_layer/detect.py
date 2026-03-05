@@ -6,32 +6,16 @@ import torchvision.transforms as transforms
 import torchvision.models as models
 import os
 
-# ------------------------
-# Device
-# ------------------------
-
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-# ------------------------
-# Image Transform
-# ------------------------
 
 transform = transforms.Compose([
     transforms.Resize((224, 224)),
     transforms.ToTensor(),
 ])
 
-# ------------------------
-# Load ResNet18
-# ------------------------
-
 resnet = models.resnet18(pretrained=True)
 resnet = resnet.to(device)
 resnet.eval()
-
-# ------------------------
-# Feature Hooks
-# ------------------------
 
 features = {}
 
@@ -43,10 +27,6 @@ def hook_layer3(module, input, output):
 
 resnet.layer2.register_forward_hook(hook_layer2)
 resnet.layer3.register_forward_hook(hook_layer3)
-
-# ------------------------
-# Load PaDiM Model
-# ------------------------
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 MODEL_DIR = os.path.join(BASE_DIR, "models")
@@ -63,9 +43,6 @@ def load_padim_model(product):
 
     return mean, inv_cov, selected_indices
 
-# ------------------------
-# Detect Anomaly
-# ------------------------
 
 def detect_anomaly(image_path, product):
 
@@ -75,7 +52,6 @@ def detect_anomaly(image_path, product):
 
     x = transform(img).unsqueeze(0).to(device)
 
-    # Feature extraction
     with torch.no_grad():
 
         _ = resnet(x)
@@ -94,7 +70,6 @@ def detect_anomaly(image_path, product):
 
     feat = feat[:, selected_indices, :, :].cpu()
 
-    # Fast Mahalanobis
     feat = feat.squeeze(0)
     feat = feat.permute(1, 2, 0)
 
@@ -106,7 +81,6 @@ def detect_anomaly(image_path, product):
 
     anomaly_map = torch.sqrt(dist.squeeze())
 
-    # Upsample
     anomaly_map = F.interpolate(
         anomaly_map.unsqueeze(0).unsqueeze(0),
         size=(224, 224),
@@ -114,7 +88,6 @@ def detect_anomaly(image_path, product):
         align_corners=False
     ).squeeze()
 
-    # Smooth
     smoothed_map = F.avg_pool2d(
         anomaly_map.unsqueeze(0).unsqueeze(0),
         kernel_size=11,
@@ -124,17 +97,11 @@ def detect_anomaly(image_path, product):
 
     heatmap = smoothed_map.cpu().numpy()
 
-    # Normalize
     heatmap = (heatmap - heatmap.min()) / (heatmap.max() - heatmap.min() + 1e-8)
 
-    # Image score
-    score = np.percentile(heatmap, 99)
-
-    print(product, "model loaded")
-    print("Product:", product)
-    print("Anomaly Score:", round(score, 3))
+    score = float(np.percentile(heatmap, 99))
 
     return {
-        "score": float(score),
+        "score": score,
         "heatmap": heatmap.tolist()
     }
