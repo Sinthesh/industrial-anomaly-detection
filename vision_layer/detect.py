@@ -7,13 +7,18 @@ import torchvision.transforms as transforms
 import torchvision.models as models
 import os
 
-
 # ------------------------
 # Device
 # ------------------------
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+# ------------------------
+# Project Paths
+# ------------------------
+
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+MODEL_DIR = os.path.join(BASE_DIR, "models")
 
 # ------------------------
 # Image Transform
@@ -24,7 +29,6 @@ transform = transforms.Compose([
     transforms.ToTensor(),
 ])
 
-
 # ------------------------
 # Load ResNet18
 # ------------------------
@@ -33,25 +37,20 @@ resnet = models.resnet18(pretrained=True)
 resnet = resnet.to(device)
 resnet.eval()
 
-
 # ------------------------
 # Feature Hook Storage
 # ------------------------
 
 features = {}
 
-
 def hook_layer2(module, input, output):
     features["layer2"] = output
-
 
 def hook_layer3(module, input, output):
     features["layer3"] = output
 
-
 resnet.layer2.register_forward_hook(hook_layer2)
 resnet.layer3.register_forward_hook(hook_layer3)
-
 
 # ------------------------
 # Load PaDiM Model
@@ -59,16 +58,15 @@ resnet.layer3.register_forward_hook(hook_layer3)
 
 def load_padim_model(product):
 
-    model_path = f"/content/drive/MyDrive/industrial_defect_detection/models/{product}_padim_model.pth"
+    model_path = os.path.join(MODEL_DIR, f"{product}_padim_model.pth")
 
-    checkpoint = torch.load(model_path)
+    checkpoint = torch.load(model_path, map_location=device)
 
     mean = checkpoint["mean"]
     inv_cov = checkpoint["inv_cov"]
     selected_indices = checkpoint["selected_indices"]
 
     return mean, inv_cov, selected_indices
-
 
 # ------------------------
 # Detect Anomaly
@@ -109,12 +107,11 @@ def detect_anomaly(image_path, product):
     # Fast Mahalanobis Distance
     # ------------------------
 
-    feat = feat.squeeze(0)         # C,H,W
-    feat = feat.permute(1, 2, 0)   # H,W,C
+    feat = feat.squeeze(0)
+    feat = feat.permute(1, 2, 0)
 
-    diff = feat - mean             # H,W,C
-
-    diff = diff.unsqueeze(-2)      # H,W,1,C
+    diff = feat - mean
+    diff = diff.unsqueeze(-2)
 
     dist = torch.matmul(diff, inv_cov)
     dist = torch.matmul(dist, diff.transpose(-1, -2))
@@ -161,31 +158,4 @@ def detect_anomaly(image_path, product):
     print("Product:", product)
     print("Anomaly Score:", round(score, 3))
 
-    # ------------------------
-    # Visualization
-    # ------------------------
-
-    plt.figure(figsize=(12,4))
-
-    # Original Image
-    plt.subplot(1,3,1)
-    plt.imshow(original_img)
-    plt.title("Original Image")
-    plt.axis("off")
-
-    # Heatmap
-    plt.subplot(1,3,2)
-    plt.imshow(heatmap, cmap="jet")
-    plt.title("Anomaly Heatmap")
-    plt.axis("off")
-
-    # Overlay
-    plt.subplot(1,3,3)
-    plt.imshow(original_img.resize((224,224)))
-    plt.imshow(heatmap, cmap="jet", alpha=0.5)
-    plt.title("Overlay Detection")
-    plt.axis("off")
-
-    plt.show()
-
-    return score, heatmap
+    return score, heatmap, original_img
