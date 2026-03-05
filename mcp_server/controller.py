@@ -13,7 +13,6 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 LOG_DIR = os.path.join(BASE_DIR, "logs")
 LOG_PATH = os.path.join(LOG_DIR, "inspection_log.txt")
 
-# Ensure log folder exists
 os.makedirs(LOG_DIR, exist_ok=True)
 
 
@@ -38,7 +37,7 @@ def process_inspection(image_path, product):
         "product": product,
         "image": image_path,
         "score": float(score),
-        "heatmap": heatmap.tolist(),   # Convert numpy → list for JSON
+        "heatmap": heatmap.tolist(),   # <-- REQUIRED FOR UI
         "runtime_seconds": runtime
     }
 
