@@ -38,7 +38,9 @@ def process_inspection(image_path, product):
         "runtime_seconds": runtime,
         "heatmap": heatmap.tolist()   # ⭐ IMPORTANT FIX
     }
-
+    print("DEBUG RESULT:", result.keys())
+    print("DEBUG HEATMAP TYPE:", type(heatmap))
+    print("DEBUG HEATMAP SHAPE:", heatmap.shape if heatmap is not None else None)
     log_result(result)
 
     print("Inspection completed in", runtime, "seconds")
