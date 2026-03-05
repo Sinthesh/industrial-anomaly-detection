@@ -41,6 +41,10 @@ if uploaded_file is not None:
         heatmap = np.array(result.get("heatmap", []))
         runtime = result.get("runtime_seconds", 0)
 
+# Fix heatmap shape
+if heatmap.size > 0:
+    heatmap = heatmap.reshape(224, 224)
+
         st.write("## Inspection Result")
 
         col1, col2 = st.columns(2)
