@@ -31,7 +31,7 @@ if uploaded_file is not None:
 
     image = Image.open(temp_path)
 
-    st.image(image, caption="Uploaded Image", use_column_width=True)
+    st.image(image, caption="Uploaded Image", width=500)
 
     if st.button("Run Inspection"):
 
@@ -41,18 +41,29 @@ if uploaded_file is not None:
         heatmap_data = result.get("heatmap", None)
         runtime = result.get("runtime_seconds", 0)
 
-        # Convert heatmap safely
         heatmap = None
+
         if heatmap_data is not None:
+
             heatmap = np.array(heatmap_data)
 
-            # If flattened, reshape
-            if heatmap.ndim == 1:
-                size = int(np.sqrt(len(heatmap)))
-                heatmap = heatmap.reshape(size, size)
+            # Handle empty heatmap
+            if heatmap.size == 0:
+                heatmap = None
 
-            # If nested weirdly, squeeze it
-            heatmap = np.squeeze(heatmap)
+            else:
+
+                # Flattened heatmap fix
+                if heatmap.ndim == 1:
+                    size = int(np.sqrt(len(heatmap)))
+                    if size * size == len(heatmap):
+                        heatmap = heatmap.reshape(size, size)
+                    else:
+                        heatmap = None
+
+                # Remove extra dimensions
+                if heatmap is not None:
+                    heatmap = np.squeeze(heatmap)
 
         st.write("## Inspection Result")
 
@@ -62,10 +73,14 @@ if uploaded_file is not None:
             st.write("### Anomaly Heatmap")
 
             if heatmap is not None and heatmap.ndim == 2:
+
                 fig, ax = plt.subplots()
+
                 ax.imshow(heatmap, cmap="jet")
                 ax.axis("off")
+
                 st.pyplot(fig)
+
             else:
                 st.warning("Heatmap could not be displayed.")
 
@@ -73,17 +88,20 @@ if uploaded_file is not None:
             st.write("### Overlay Detection")
 
             if heatmap is not None and heatmap.ndim == 2:
+
                 fig2, ax2 = plt.subplots()
 
-                ax2.imshow(image.resize((224,224)))
+                ax2.imshow(image.resize((224, 224)))
                 ax2.imshow(heatmap, cmap="jet", alpha=0.5)
+
                 ax2.axis("off")
 
                 st.pyplot(fig2)
+
             else:
                 st.warning("Overlay not available.")
 
         st.write("### Metrics")
 
-        st.metric("Anomaly Score", round(score,3))
+        st.metric("Anomaly Score", round(score, 3))
         st.metric("Runtime (seconds)", runtime)
