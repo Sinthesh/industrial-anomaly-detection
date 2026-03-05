@@ -37,7 +37,7 @@ def process_inspection(image_path, product):
         "product": product,
         "image": image_path,
         "score": float(score),
-        "heatmap": heatmap.tolist(),   # <-- REQUIRED FOR UI
+        "heatmap": heatmap.tolist(),
         "runtime_seconds": runtime
     }
 
