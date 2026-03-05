@@ -25,7 +25,11 @@ def process_inspection(image_path, product):
     print("Starting inspection...")
     print("Product:", product)
 
-    vision_result = detect_anomaly(image_path, product)
+    try:
+        vision_result = detect_anomaly(image_path, product)
+    except Exception as e:
+        print("MODEL ERROR:", e)
+        raise e
 
     end_time = time.time()
     runtime = round(end_time - start_time, 3)
