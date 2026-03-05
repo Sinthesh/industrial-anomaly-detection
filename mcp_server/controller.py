@@ -6,10 +6,15 @@ from vision_layer.detect import detect_anomaly
 
 
 # ------------------------
-# Log File
+# Project Paths
 # ------------------------
 
-LOG_PATH = "/content/drive/MyDrive/industrial_defect_detection/logs/inspection_log.txt"
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+LOG_DIR = os.path.join(BASE_DIR, "logs")
+LOG_PATH = os.path.join(LOG_DIR, "inspection_log.txt")
+
+# Ensure log folder exists
+os.makedirs(LOG_DIR, exist_ok=True)
 
 
 # ------------------------
@@ -24,7 +29,7 @@ def process_inspection(image_path, product):
     print("Product:", product)
 
     # Run Vision Model
-    score, heatmap = detect_anomaly(image_path, product)
+    score, heatmap, original_img = detect_anomaly(image_path, product)
 
     end_time = time.time()
     runtime = round(end_time - start_time, 3)
