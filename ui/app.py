@@ -5,7 +5,7 @@ import numpy as np
 import cv2
 from PIL import Image
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(**file**), "..")))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from mcp_server.controller import process_inspection
 
 st.title("Industrial Defect Detection System")
