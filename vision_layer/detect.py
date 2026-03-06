@@ -97,9 +97,9 @@ def detect_anomaly(image_path, product):
 
     heatmap = smoothed_map.cpu().numpy()
 
-    heatmap = (heatmap - heatmap.min()) / (heatmap.max() - heatmap.min() + 1e-8)
-
     score = float(np.percentile(heatmap, 99))
+
+    heatmap_display = (heatmap - heatmap.min()) / (heatmap.max() - heatmap.min() + 1e-8)
 
     return {
         "score": float(score),
