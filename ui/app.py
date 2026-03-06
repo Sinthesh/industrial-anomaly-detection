@@ -100,33 +100,38 @@ if uploaded_file is not None:
 
             heatmap_vis = heatmap.copy()
 
-            heatmap_vis = np.clip(
-                heatmap_vis,
-                0,
-                np.percentile(heatmap_vis, 99)
-            )
+        # clip extreme values
+        heatmap_vis = np.clip(
+            heatmap_vis,
+            0,
+            np.percentile(heatmap_vis, 99)
+        )
 
-            heatmap_vis = (
-                (heatmap_vis - heatmap_vis.min()) /
-                (heatmap_vis.max() - heatmap_vis.min() + 1e-8)
-            )
+        # normalize
+        heatmap_vis = (
+            (heatmap_vis - heatmap_vis.min()) /
+            (heatmap_vis.max() - heatmap_vis.min() + 1e-8)
+        )
 
-            heatmap_uint8 = (heatmap_vis * 255).astype(np.uint8)
+        # invert so defect becomes red
+        heatmap_vis = 1 - heatmap_vis
 
-            heatmap_color = cv2.applyColorMap(
-                heatmap_uint8,
-                cv2.COLORMAP_JET
-            )
+        heatmap_uint8 = (heatmap_vis * 255).astype(np.uint8)
 
-            overlay = cv2.addWeighted(
-                image_np,
-                0.7,
-                heatmap_color,
-                0.3,
-                0
-            )
+        heatmap_color = cv2.applyColorMap(
+            heatmap_uint8,
+            cv2.COLORMAP_JET
+        )
 
-            st.image(overlay)
+        overlay = cv2.addWeighted(
+            image_np,
+            0.65,
+            heatmap_color,
+            0.35,
+            0
+        )
+
+        st.image(overlay)
 
         # ---------------------------
         # RAW JSON OUTPUT
