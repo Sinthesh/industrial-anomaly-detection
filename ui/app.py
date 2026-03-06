@@ -58,25 +58,15 @@ if uploaded_file is not None:
             st.image(image, width=250)
 
         # ---------------------------
-        # IMPROVED HEATMAP
+        # HEATMAP (INVERTED COLORS)
         # ---------------------------
         with col2:
             st.subheader("Anomaly Heatmap")
 
             heatmap_vis = heatmap.copy()
 
-            # clip extreme values (important fix)
-            heatmap_vis = np.clip(
-                heatmap_vis,
-                0,
-                np.percentile(heatmap_vis, 99)
-            )
-
-            # normalize for visualization
-            heatmap_vis = (
-                (heatmap_vis - heatmap_vis.min()) /
-                (heatmap_vis.max() - heatmap_vis.min() + 1e-8)
-            )
+            # invert heatmap so defect becomes red
+            heatmap_vis = 1 - heatmap_vis
 
             heatmap_uint8 = (heatmap_vis * 255).astype(np.uint8)
 
@@ -97,18 +87,7 @@ if uploaded_file is not None:
 
             heatmap_vis = heatmap.copy()
 
-            heatmap_vis = np.clip(
-                heatmap_vis,
-                0,
-                np.percentile(heatmap_vis, 99)
-            )
-
-            heatmap_vis = (
-                (heatmap_vis - heatmap_vis.min()) /
-                (heatmap_vis.max() - heatmap_vis.min() + 1e-8)
-            )
-
-            # invert heatmap so defect becomes red
+            # invert heatmap
             heatmap_vis = 1 - heatmap_vis
 
             heatmap_uint8 = (heatmap_vis * 255).astype(np.uint8)
