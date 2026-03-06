@@ -46,16 +46,8 @@ if uploaded_file is not None:
             st.image(image, width=250)
 
         with col2:
-            st.subheader("Anomaly Heatmap")
-
-            heatmap_uint8 = (heatmap * 255).astype(np.uint8)
-
-            heatmap_color = cv2.applyColorMap(
-                heatmap_uint8,
-                cv2.COLORMAP_JET
-            )
-
-            st.image(heatmap_color)
+            st.subheader("Heatmap")
+            st.image((heatmap * 255).astype("uint8"))
 
         with col3:
             st.subheader("Overlay")
