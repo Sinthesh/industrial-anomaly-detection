@@ -5,9 +5,11 @@ import numpy as np
 import cv2
 from PIL import Image
 
+# Allow project imports
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from mcp_server.controller import process_inspection
+
 
 st.title("Industrial Defect Detection System")
 
@@ -49,17 +51,29 @@ if uploaded_file is not None:
 
         col1, col2, col3 = st.columns(3)
 
+        # ------------------------
+        # Original Image
+        # ------------------------
+
         with col1:
             st.subheader("Original")
             st.image(image, width=250)
+
+        # ------------------------
+        # Heatmap
+        # ------------------------
 
         with col2:
             st.subheader("Heatmap")
             st.image((heatmap * 255).astype("uint8"))
 
+        # ------------------------
+        # Overlay + Bounding Box
+        # ------------------------
+
         with col3:
 
-            st.subheader("Overlay")
+            st.subheader("Overlay + Defect Box")
 
             image_np = np.array(image.resize((224,224)))
 
@@ -78,6 +92,32 @@ if uploaded_file is not None:
                 0
             )
 
+            # ------------------------
+            # Defect Localization
+            # ------------------------
+
+            threshold = 0.6
+            mask = heatmap > threshold
+
+            coords = np.column_stack(np.where(mask))
+
+            if len(coords) > 0:
+
+                y_min, x_min = coords.min(axis=0)
+                y_max, x_max = coords.max(axis=0)
+
+                cv2.rectangle(
+                    overlay,
+                    (x_min, y_min),
+                    (x_max, y_max),
+                    (255, 0, 0),
+                    2
+                )
+
             st.image(overlay)
+
+        # ------------------------
+        # JSON Result
+        # ------------------------
 
         st.json(result)
