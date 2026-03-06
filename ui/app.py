@@ -55,7 +55,7 @@ if uploaded_file is not None:
 
         with col2:
             st.subheader("Heatmap")
-            st.image(heatmap, clamp=True)
+            st.image((heatmap * 255).astype("uint8"))
 
         with col3:
 
