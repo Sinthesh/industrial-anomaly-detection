@@ -4,7 +4,6 @@ import os
 import numpy as np
 import cv2
 from PIL import Image
-import matplotlib.pyplot as plt
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from mcp_server.controller import process_inspection
@@ -17,6 +16,8 @@ product = st.selectbox(
     "Select Product Type",
     ["bottle", "hazelnut", "metalnut", "pill"]
 )
+
+st.info(f"Model selected: {product}_padim_model.pth")
 
 if uploaded_file is not None:
 
@@ -49,46 +50,40 @@ if uploaded_file is not None:
 
         col1, col2, col3 = st.columns(3)
 
-        # -------------------------
-        # ORIGINAL IMAGE
-        # -------------------------
         with col1:
             st.subheader("Original")
+            st.image(image, width=250)
 
-            image_resized = image.resize((224, 224))
-            image_np = np.array(image_resized)
-
-            st.image(image_np, width=250)
-
-        # -------------------------
-        # HEATMAP (JET COLORMAP)
-        # -------------------------
         with col2:
             st.subheader("Anomaly Heatmap")
 
-            fig, ax = plt.subplots()
+            heatmap_uint8 = (heatmap * 255).astype(np.uint8)
+            heatmap_color = cv2.applyColorMap(
+                heatmap_uint8,
+                cv2.COLORMAP_JET
+            )
 
-            ax.imshow(heatmap, cmap="jet")
-            ax.axis("off")
+            st.image(heatmap_color)
 
-            st.pyplot(fig)
-
-        # -------------------------
-        # OVERLAY (MATCH COLAB)
-        # -------------------------
         with col3:
             st.subheader("Overlay Detection")
 
-            fig2, ax2 = plt.subplots()
+            image_np = np.array(image.resize((224, 224)))
 
-            ax2.imshow(image_np)
-            ax2.imshow(heatmap, cmap="jet", alpha=0.45)
+            heatmap_uint8 = (heatmap * 255).astype(np.uint8)
+            heatmap_color = cv2.applyColorMap(
+                heatmap_uint8,
+                cv2.COLORMAP_JET
+            )
 
-            ax2.axis("off")
+            overlay = cv2.addWeighted(
+                image_np,
+                0.7,
+                heatmap_color,
+                0.3,
+                0
+            )
 
-            st.pyplot(fig2)
+            st.image(overlay)
 
-        # -------------------------
-        # RAW JSON OUTPUT
-        # -------------------------
         st.json(result)
