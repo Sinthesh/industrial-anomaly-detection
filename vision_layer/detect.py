@@ -13,8 +13,8 @@ transform = transforms.Compose([
     transforms.ToTensor(),
 ])
 
-# Updated ResNet loading
-resnet = models.resnet18(weights=models.ResNet18_Weights.DEFAULT)
+# EXACT SAME MODEL LOADING AS COLAB
+resnet = models.resnet18(pretrained=True)
 resnet = resnet.to(device)
 resnet.eval()
 
@@ -32,18 +32,11 @@ resnet.layer3.register_forward_hook(hook_layer3)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 MODEL_DIR = os.path.join(BASE_DIR, "models")
 
-
 def load_padim_model(product):
 
-    model_path = os.path.join(
-        MODEL_DIR,
-        f"{product}_padim_model.pth"
-    )
+    model_path = os.path.join(MODEL_DIR, f"{product}_padim_model.pth")
 
-    checkpoint = torch.load(
-        model_path,
-        map_location=device
-    )
+    checkpoint = torch.load(model_path, map_location=device)
 
     mean = checkpoint["mean"].cpu()
     inv_cov = checkpoint["inv_cov"].cpu()
@@ -60,7 +53,7 @@ def detect_anomaly(image_path, product):
 
     x = transform(img).unsqueeze(0).to(device)
 
-    # CRITICAL FIX
+    # IMPORTANT
     features.clear()
 
     with torch.no_grad():
@@ -77,10 +70,7 @@ def detect_anomaly(image_path, product):
             align_corners=False
         )
 
-        feat = torch.cat(
-            [layer2_feat, layer3_feat],
-            dim=1
-        )
+        feat = torch.cat([layer2_feat, layer3_feat], dim=1)
 
     feat = feat[:, selected_indices, :, :].cpu()
 
@@ -91,10 +81,7 @@ def detect_anomaly(image_path, product):
     diff = diff.unsqueeze(-2)
 
     dist = torch.matmul(diff, inv_cov)
-    dist = torch.matmul(
-        dist,
-        diff.transpose(-1, -2)
-    )
+    dist = torch.matmul(dist, diff.transpose(-1, -2))
 
     anomaly_map = torch.sqrt(dist.squeeze())
 
@@ -112,18 +99,15 @@ def detect_anomaly(image_path, product):
         padding=5
     ).squeeze()
 
-    raw_map = smoothed_map.cpu().numpy()
+    heatmap = smoothed_map.cpu().numpy()
 
-    # Score from RAW anomaly map
-    score = float(np.percentile(raw_map, 99))
+    # score from RAW map (same as colab)
+    score = float(np.percentile(heatmap, 99))
 
-    # Normalize only for visualization
-    heatmap_display = (
-        (raw_map - raw_map.min()) /
-        (raw_map.max() - raw_map.min() + 1e-8)
-    )
+    # normalize ONLY for visualization
+    heatmap = (heatmap - heatmap.min()) / (heatmap.max() - heatmap.min() + 1e-8)
 
     return {
         "score": score,
-        "heatmap": heatmap_display.tolist()
+        "heatmap": heatmap.tolist()
     }
