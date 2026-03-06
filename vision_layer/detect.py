@@ -102,6 +102,6 @@ def detect_anomaly(image_path, product):
     score = float(np.percentile(heatmap, 99))
 
     return {
-        "score": score,
+        "score": float(score),
         "heatmap": heatmap.tolist()
     }
