@@ -78,6 +78,9 @@ if uploaded_file is not None:
                 (heatmap_vis.max() - heatmap_vis.min() + 1e-8)
             )
 
+            # invert heatmap so defect becomes red
+            heatmap_vis = 1 - heatmap_vis
+
             heatmap_uint8 = (heatmap_vis * 255).astype(np.uint8)
 
             heatmap_color = cv2.applyColorMap(
