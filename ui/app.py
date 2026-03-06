@@ -58,56 +58,16 @@ if uploaded_file is not None:
             st.image(image, width=250)
 
         # ---------------------------
-        # IMPROVED HEATMAP
+        # HEATMAP FIX
         # ---------------------------
-        with col2:
-            st.subheader("Anomaly Heatmap")
+        heatmap_vis = heatmap.copy()
 
-            heatmap_vis = heatmap.copy()
-
-            # clip extreme values (important fix)
-            heatmap_vis = np.clip(
-                heatmap_vis,
-                0,
-                np.percentile(heatmap_vis, 99)
-            )
-
-            # normalize for visualization
-            heatmap_vis = (
-                (heatmap_vis - heatmap_vis.min()) /
-                (heatmap_vis.max() - heatmap_vis.min() + 1e-8)
-            )
-
-            # invert heatmap so defect becomes red
-            heatmap_vis = 1 - heatmap_vis
-
-            heatmap_uint8 = (heatmap_vis * 255).astype(np.uint8)
-
-            heatmap_color = cv2.applyColorMap(
-                heatmap_uint8,
-                cv2.COLORMAP_JET
-            )
-
-            st.image(heatmap_color)
-
-        # ---------------------------
-        # OVERLAY DETECTION
-        # ---------------------------
-        with col3:
-            st.subheader("Overlay Detection")
-
-            image_np = np.array(image.resize((224, 224)))
-
-            heatmap_vis = heatmap.copy()
-
-        # clip extreme values
         heatmap_vis = np.clip(
             heatmap_vis,
             0,
             np.percentile(heatmap_vis, 99)
         )
 
-        # normalize
         heatmap_vis = (
             (heatmap_vis - heatmap_vis.min()) /
             (heatmap_vis.max() - heatmap_vis.min() + 1e-8)
@@ -123,17 +83,29 @@ if uploaded_file is not None:
             cv2.COLORMAP_JET
         )
 
-        overlay = cv2.addWeighted(
-            image_np,
-            0.65,
-            heatmap_color,
-            0.35,
-            0
-        )
-
-        st.image(overlay)
+        # ---------------------------
+        # HEATMAP DISPLAY
+        # ---------------------------
+        with col2:
+            st.subheader("Anomaly Heatmap")
+            st.image(heatmap_color)
 
         # ---------------------------
-        # RAW JSON OUTPUT
+        # OVERLAY DETECTION
         # ---------------------------
+        with col3:
+            st.subheader("Overlay Detection")
+
+            image_np = np.array(image.resize((224, 224)))
+
+            overlay = cv2.addWeighted(
+                image_np,
+                0.7,
+                heatmap_color,
+                0.3,
+                0
+            )
+
+            st.image(overlay)
+
         st.json(result)
